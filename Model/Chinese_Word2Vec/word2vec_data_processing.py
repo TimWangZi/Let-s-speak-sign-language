@@ -14,7 +14,10 @@ for file_name in file_list:
         for line in fi:
             clean_stence = re.sub("[\s+\.\!\/_,$%^*(+\"\'””《》]+|[+——！，。？、~@#￥%……&*（）：；‘]+", "",line)
             if (len(clean_stence) != 0):
-                text_all.append(jieba.lcut(clean_stence))
+                x = jieba.lcut(clean_stence)
+                x.append('<END>')
+                x.insert(0,'<START>')
+                text_all.append(x)
 with open(RESULT_FILE_PATH, 'wb') as file_to_write:
     pickle.dump(text_all ,file_to_write)
         
