@@ -132,8 +132,11 @@ class Body_recognition:
                     "upper_body": upper_body_dict,
                     "hands": hands_dict
                 }
-                loc_json = json.dumps(loc_tuple)
-                yield loc_json
+                yield loc_tuple
+                #loc_json = json.dumps(loc_tuple)
+                #yield loc_json
+            if img is None: 
+                break
 
             #if cv.waitKey(1) & 0xFF == ord("q"):
             #    break
