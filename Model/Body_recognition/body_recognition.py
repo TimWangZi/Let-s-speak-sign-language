@@ -1,12 +1,14 @@
 import cv2 as cv
 import mediapipe as mp
+import json
 
 class Body_recognition:
-    def __init__(self):
+    def __init__(self, video_path):
         # 手部检测初始化
         self.mp_hand = mp.solutions.hands
         self.hand = self.mp_hand.Hands()
         self.mp_draw = mp.solutions.drawing_utils
+        self.video_path = video_path
 
         # 姿态检测初始化
         self.mp_pose = mp.solutions.pose
@@ -35,8 +37,8 @@ class Body_recognition:
         ]
 
     def detect(self):
-        # 打开摄像头
-        cap = cv.VideoCapture(0)
+        # 打开视频文件
+        cap = cv.VideoCapture(self.video_path)
         while cap.isOpened():
             # 接受两个变量，前者控制打开的状态，后者接收每一帧
             cond, img = cap.read()
@@ -113,13 +115,35 @@ class Body_recognition:
 
                 cv.imshow("img_RGB", img)
 
-                # 每一帧处理完后就返回该帧的坐标列表
-                yield face_loc, upper_body_loc, hands_list
+                # 处理可能的索引越界问题
+                face_dict = {f"face_{i + 1}": face_loc[i] if i < len(face_loc) else (0, 0) for i in range(9)}
+                upper_body_dict = {
+                    "left_shoulder": upper_body_loc[0] if len(upper_body_loc) > 0 else (0, 0),
+                    "left_elbow": upper_body_loc[1] if len(upper_body_loc) > 1 else (0, 0),
+                    "left_wrist": upper_body_loc[2] if len(upper_body_loc) > 2 else (0, 0),
+                    "right_shoulder": upper_body_loc[3] if len(upper_body_loc) > 3 else (0, 0),
+                    "right_elbow": upper_body_loc[4] if len(upper_body_loc) > 4 else (0, 0),
+                    "right_wrist": upper_body_loc[5] if len(upper_body_loc) > 5 else (0, 0)
+                }
+                hands_dict = {f"hands_{i + 1}": hands_list[i] if i < len(hands_list) else (0, 0) for i in range(21)}
 
-                if cv.waitKey(1) & 0xFF == ord("q"):
-                    break
+                loc_tuple = {
+                    "face": face_dict,
+                    "upper_body": upper_body_dict,
+                    "hands": hands_dict
+                }
+                loc_json = json.dumps(loc_tuple)
+                yield loc_json
+
+            if cv.waitKey(1) & 0xFF == ord("q"):
+                break
 
         cap.release()
         cv.destroyAllWindows()
 
-
+'''
+body_rec = Body_recognition()
+detect = body_rec.detect()
+for loc_json in detect:
+    print(loc_json)
+'''
