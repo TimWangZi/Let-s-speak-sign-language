@@ -1,12 +1,14 @@
 import cv2 as cv
 import mediapipe as mp
+import json
 
 class Body_recognition:
-    def __init__(self):
+    def __init__(self,video_path):
         # 手部检测初始化
         self.mp_hand = mp.solutions.hands
         self.hand = self.mp_hand.Hands()
         self.mp_draw = mp.solutions.drawing_utils
+        self.video_path=video_path
 
         # 姿态检测初始化
         self.mp_pose = mp.solutions.pose
@@ -36,7 +38,7 @@ class Body_recognition:
 
     def detect(self):
         # 打开摄像头
-        cap = cv.VideoCapture(0)
+        cap = cv.VideoCapture(self.video_path)
         while cap.isOpened():
             # 接受两个变量，前者控制打开的状态，后者接收每一帧
             cond, img = cap.read()
@@ -114,12 +116,51 @@ class Body_recognition:
                 cv.imshow("img_RGB", img)
 
                 # 每一帧处理完后就返回该帧的坐标列表
-                yield face_loc, upper_body_loc, hands_list
+                loc_tuple={"face":{
+                    "face_1":face_loc[0],
+                    "face_2": face_loc[1],
+                    "face_3": face_loc[2],
+                    "face_4": face_loc[3],
+                    "face_5": face_loc[4],
+                    "face_6": face_loc[5],
+                    "face_7": face_loc[6],
+                    "face_8": face_loc[7],
+                    "face_9": face_loc[8],
+                },
+                "upper_body":{
+                    "left_shoulder":upper_body_loc[0],
+                    "left_elbow":upper_body_loc[1],
+                    "left_wrist":upper_body_loc[2],
+                    "right_shoulder":upper_body_loc[3],
+                    "right_elbow":upper_body_loc[4],
+                    "right_wrist":upper_body_loc[5]
+                },
+                "hands":{
+                    "hands_1":hands_list[0],"hands_2": hands_list[1],"hands_3": hands_list[2],
+                    "hands_4": hands_list[3],"hands_5": hands_list[4],"hands_6": hands_list[5],
+                    "hands_7": hands_list[6],"hands_8": hands_list[7],"hands_9": hands_list[8],
+                    "hands_10": hands_list[9],"hands_11": hands_list[10],"hands_12": hands_list[11],
+                    "hands_13": hands_list[12],"hands_14": hands_list[13],"hands_15": hands_list[14],
+                    "hands_16": hands_list[15],"hands_17": hands_list[16],"hands_18":hands_list[17],
+                    "hands_19": hands_list[18],"hands_20": hands_list[19],"hands_21":hands_list[20]
+                }
+                }
+                loc_json=json.dumps(loc_tuple)
+                yield loc_json
 
                 if cv.waitKey(1) & 0xFF == ord("q"):
                     break
 
+
         cap.release()
         cv.destroyAllWindows()
+
+'''
+使用方法
+body_rec = Body_recognition()
+detect = body_rec.detect()
+for loc_json in detect:
+    print(loc_json)
+'''
 
 
