@@ -143,6 +143,10 @@ class Body_recognition:
 
         cap.release()
         cv.destroyAllWindows()
+    def __del__(self):
+        self.hand.close()
+        self.face_mesh.close()
+        self.pose.close()
 
 '''
 body_rec = Body_recognition()
